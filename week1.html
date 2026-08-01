@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XYZ Bank | Diwali Bonanza Coupons</title>
+
+<!-- Google fonts: Fraunces for the bank's display headings, Inter for body copy, 
+     JetBrains Mono for the coupon code so it reads like a real generated code -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    /* ---- Design tokens ---- */
+    --navy: #0f2a4a;        /* primary brand colour, trust/banking */
+    --navy-deep: #081b30;   /* header/footer background */
+    --cream: #faf6ec;       /* page background, warm not stark white */
+    --ink: #1c2027;         /* body text */
+    --ink-soft: #5b6472;    /* secondary text */
+    --gold: #c9971f;        /* Diwali accent, used sparingly */
+    --gold-soft: #f2e2bb;   /* gold tint for backgrounds */
+    --ember: #d95d1f;       /* diya flame accent */
+    --success: #1f7a4d;     /* coupon revealed state */
+    --line: #e3dbc9;        /* hairline borders on cream */
+    --radius: 10px;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    line-height: 1.55;
+  }
+
+  h1, h2, h3 { font-family: 'Fraunces', serif; margin: 0; }
+
+  /* ---------- Header ---------- */
+  header.bank-header {
+    background: var(--navy-deep);
+    color: #fff;
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .bank-header .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Fraunces', serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+  .bank-header .brand .mark {
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--gold), var(--ember));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; font-weight: 700; color: var(--navy-deep);
+  }
+  .bank-header .customer-chip {
+    font-size: 0.85rem;
+    color: #cfd8e6;
+  }
+
+  /* ---------- Hero / welcome banner ---------- */
+  .hero {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 56px 24px 40px;
+    text-align: center;
+  }
+  .hero .eyebrow {
+    display: inline-block;
+    font-size: 0.75rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--ember);
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+  .hero h1 {
+    font-size: clamp(1.9rem, 4vw, 2.6rem);
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 14px;
+  }
+  #welcomeMessage {
+    font-size: 1.05rem;
+    color: var(--ink-soft);
+    min-height: 28px; /* reserves space so layout doesn't jump before JS runs */
+  }
+
+  /* small diya (lamp) flame drawn in CSS, purely decorative, sits above the heading */
+  .diya {
+    width: 26px; height: 34px;
+    margin: 0 auto 16px;
+    position: relative;
+  }
+  .diya::before {
+    content: "";
+    position: absolute;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 26px; height: 12px;
+    background: var(--gold);
+    border-radius: 0 0 14px 14px;
+  }
+  .diya::after {
+    content: "";
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 8px; height: 16px;
+    background: var(--ember);
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    box-shadow: 0 0 12px 3px rgba(217, 93, 31, 0.55);
+  }
+
+  /* ---------- Customer ID card ---------- */
+  .id-card {
+    max-width: 420px;
+    margin: 0 auto 48px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    text-align: left;
+    box-shadow: 0 1px 2px rgba(15, 42, 74, 0.05);
+  }
+  .id-card label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 6px;
+  }
+  .id-card input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.95rem;
+    color: var(--ink);
+  }
+  .id-card input:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
+  .id-card .hint { font-size: 0.78rem; color: var(--ink-soft); margin-top: 6px; }
+
+  /* ---------- Offer section ---------- */
+  .offer-section {
+    max-width: 720px;
+    margin: 0 auto 64px;
+    padding: 0 24px;
+  }
+  .offer-card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 32px;
+    text-align: center;
+  }
+  .offer-card h2 {
+    font-size: 1.4rem;
+    color: var(--navy);
+    margin-bottom: 8px;
+  }
+  .offer-card p.sub {
+    color: var(--ink-soft);
+    margin: 0 0 24px;
+    font-size: 0.95rem;
+  }
+
+  button.register-btn {
+    background: var(--navy);
+    color: #fff;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 999px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease;
+  }
+  button.register-btn:hover { background: #143a63; }
+  button.register-btn:active { transform: scale(0.98); }
+  button.register-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+  /* steps panel: hidden by default, revealed by JS */
+  #stepsPanel {
+    display: none;
+    margin-top: 28px;
+    text-align: left;
+    border-top: 1px dashed var(--line);
+    padding-top: 24px;
+  }
+  #stepsPanel ol {
+    padding-left: 20px;
+    margin: 0 0 24px;
+  }
+  #stepsPanel li { margin-bottom: 10px; color: var(--ink); }
+  #stepsPanel li span.step-label { color: var(--ink-soft); }
+
+  /* ---------- Coupon ticket (signature element) ---------- */
+  .coupon-ticket {
+    display: none; /* revealed once a code has been generated */
+    position: relative;
+    background: linear-gradient(135deg, var(--navy), #123a63);
+    color: #fff;
+    border-radius: 12px;
+    padding: 22px 24px;
+    text-align: left;
+    overflow: hidden;
+  }
+  .coupon-ticket .tag {
+    font-size: 0.72rem;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--gold-soft);
+    margin-bottom: 6px;
+  }
+  .coupon-ticket .code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+  }
+  .coupon-ticket .expiry {
+    margin-top: 10px;
+    font-size: 0.78rem;
+    color: #c7d3e3;
+  }
+  /* perforation notches, purely decorative, to sell the "ticket" metaphor */
+  .coupon-ticket::before,
+  .coupon-ticket::after {
+    content: "";
+    position: absolute;
+    top: 50%; transform: translateY(-50%);
+    width: 20px; height: 20px;
+    background: var(--cream);
+    border-radius: 50%;
+  }
+  .coupon-ticket::before { left: -10px; }
+  .coupon-ticket::after { right: -10px; }
+
+  .error-text {
+    color: var(--ember);
+    font-size: 0.85rem;
+    margin-top: 10px;
+    display: none;
+  }
+
+  footer {
+    text-align: center;
+    color: var(--ink-soft);
+    font-size: 0.8rem;
+    padding: 24px;
+  }
+
+  @media (max-width: 480px) {
+    .offer-card { padding: 24px 18px; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- ============ HEADER ============ -->
+  <header class="bank-header">
+    <div class="brand">
+      <span class="mark">XY</span>
+      XYZ Bank
+    </div>
+    <div class="customer-chip" id="customerChip">Not signed in</div>
+  </header>
+
+  <!-- ============ HERO / WELCOME MESSAGE ============ -->
+  <section class="hero">
+    <div class="diya" aria-hidden="true"></div>
+    <span class="eyebrow">Festival Bonanza Offer</span>
+    <h1>Diwali coupons for our existing customers</h1>
+    <!-- This paragraph is intentionally empty in the HTML.
+         Scenario 1 requires the welcome message to be written using JavaScript,
+         so the text is inserted by displayWelcomeMessage() after the page loads. -->
+    <p id="welcomeMessage"></p>
+  </section>
+
+  <!-- ============ CUSTOMER ID INPUT ============ -->
+  <div class="id-card">
+    <label for="customerIdInput">Your customer ID</label>
+    <input type="text" id="customerIdInput" placeholder="e.g. CUST4821" maxlength="12">
+    <p class="hint">We use this to personalise your welcome message and to generate a coupon code that's unique to your account.</p>
+  </div>
+
+  <!-- ============ OFFER / REGISTER / COUPON ============ -->
+  <section class="offer-section">
+    <div class="offer-card">
+      <h2>Claim your Diwali coupon</h2>
+      <p class="sub">Register below to see the steps and get a coupon code tied to your customer ID.</p>
+
+      <!-- Scenario 2: clicking this button toggles the steps panel -->
+      <button class="register-btn" id="registerBtn">Register for the offer</button>
+
+      <p class="error-text" id="errorText">Please enter your customer ID above before registering.</p>
+
+      <!-- Hidden by default; shown/hidden by toggleStepsPanel() -->
+      <div id="stepsPanel">
+        <ol>
+          <li><span class="step-label">Step 1 —</span> Confirm your registered mobile number linked to your account.</li>
+          <li><span class="step-label">Step 2 —</span> Enter your customer ID in the box above (already done if you see this).</li>
+          <li><span class="step-label">Step 3 —</span> Click "Generate my coupon" to create a code unique to your account.</li>
+          <li><span class="step-label">Step 4 —</span> Use the code at checkout on any purchase before the offer expires.</li>
+        </ol>
+
+        <button class="register-btn" id="generateBtn" style="background: var(--ember);">
+          Generate my coupon
+        </button>
+
+        <!-- Scenario 3: the coupon ticket, filled in by generateCouponCode() -->
+        <div class="coupon-ticket" id="couponTicket">
+          <div class="tag">Your Diwali coupon</div>
+          <div class="code" id="couponCode">—</div>
+          <div class="expiry">Valid till 31 Oct 2026 &middot; one-time use</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    XYZ Bank Festival Bonanza &middot; Demonstrated across IE, Chrome and Firefox
+  </footer>
+
+  <script>
+    /* ==========================================================
+       XYZ BANK — DIWALI COUPON CASE STUDY
+       Covers three scenarios end to end:
+         1. Welcome message to existing users, written via JS
+         2. Register button toggles the detailed coupon steps
+         3. Coupon code generated from the customer's ID
+       ========================================================== */
+
+    // Grabbing all the elements we'll need up front, rather than
+    // querying the DOM again and again inside each function.
+    var customerIdInput = document.getElementById("customerIdInput");
+    var customerChip     = document.getElementById("customerChip");
+    var welcomeMessage    = document.getElementById("welcomeMessage");
+    var registerBtn       = document.getElementById("registerBtn");
+    var stepsPanel         = document.getElementById("stepsPanel");
+    var generateBtn        = document.getElementById("generateBtn");
+    var couponTicket       = document.getElementById("couponTicket");
+    var couponCode          = document.getElementById("couponCode");
+    var errorText            = document.getElementById("errorText");
+
+    // Tracks whether the steps panel is currently open, so the
+    // register button can act as a simple show/hide toggle.
+    var stepsAreVisible = false;
+
+    /* ----------------------------------------------------------
+       SCENARIO 1: Welcome message for existing users
+       In a real system this name would come from a login session /
+       API call. For this case study we fall back to a generic
+       greeting until the customer types in their ID, then we
+       personalise the message using their ID.
+    ---------------------------------------------------------- */
+    function displayWelcomeMessage(customerId) {
+      if (customerId && customerId.trim().length > 0) {
+        welcomeMessage.textContent =
+          "Welcome back, " + customerId.trim().toUpperCase() +
+          "! As a valued XYZ Bank customer, you're eligible for our Diwali bonanza coupon.";
+      } else {
+        welcomeMessage.textContent =
+          "Welcome, valued customer! Enter your customer ID below to unlock your Diwali coupon.";
+      }
+    }
+
+    // Update the little "signed in as" chip in the header too,
+    // just so the page feels consistent as the customer types.
+    function updateCustomerChip(customerId) {
+      if (customerId && customerId.trim().length > 0) {
+        customerChip.textContent = "Signed in as " + customerId.trim().toUpperCase();
+      } else {
+        customerChip.textContent = "Not signed in";
+      }
+    }
+
+    // Run once on page load so the welcome message is never blank.
+    displayWelcomeMessage(customerIdInput.value);
+
+    // Re-run every time the customer edits their ID, so the greeting
+    // and the header chip stay in sync with what they've typed.
+    customerIdInput.addEventListener("input", function () {
+      displayWelcomeMessage(customerIdInput.value);
+      updateCustomerChip(customerIdInput.value);
+    });
+
+    /* ----------------------------------------------------------
+       SCENARIO 2: Register button hides/shows the detailed steps
+       First click validates that a customer ID has been entered,
+       then reveals the steps panel. Clicking again hides it -
+       a plain toggle.
+    ---------------------------------------------------------- */
+    function toggleStepsPanel() {
+      var customerId = customerIdInput.value.trim();
+
+      // Guard clause: don't reveal the steps until we actually
+      // know who the customer is.
+      if (!stepsAreVisible && customerId.length === 0) {
+        errorText.style.display = "block";
+        customerIdInput.focus();
+        return;
+      }
+
+      errorText.style.display = "none";
+      stepsAreVisible = !stepsAreVisible;
+
+      stepsPanel.style.display = stepsAreVisible ? "block" : "none";
+      registerBtn.textContent = stepsAreVisible
+        ? "Hide registration steps"
+        : "Register for the offer";
+    }
+
+    registerBtn.addEventListener("click", toggleStepsPanel);
+
+    /* ----------------------------------------------------------
+       SCENARIO 3: Coupon code generated from the customer ID
+       We turn the customer ID into a short numeric hash, mix in
+       "DIWALI" so the code is easy to recognise, and append a
+       couple of random characters so two clicks don't always
+       produce an identical looking code.
+    ---------------------------------------------------------- */
+    function hashCustomerId(customerId) {
+      var hash = 0;
+      for (var i = 0; i < customerId.length; i++) {
+        hash = (hash * 31 + customerId.charCodeAt(i)) % 100000;
+      }
+      // Pad to 5 digits so codes are a consistent length, e.g. "00423"
+      return String(hash).padStart(5, "0");
+    }
+
+    function generateCouponCode() {
+      var customerId = customerIdInput.value.trim().toUpperCase();
+
+      if (customerId.length === 0) {
+        errorText.style.display = "block";
+        customerIdInput.focus();
+        return;
+      }
+
+      var idDigits = hashCustomerId(customerId);
+      var randomSuffix = Math.random().toString(36).slice(2, 4).toUpperCase();
+
+      var code = "DIWALI-" + idDigits + "-" + randomSuffix;
+
+      couponCode.textContent = code;
+      couponTicket.style.display = "block";
+    }
+
+    generateBtn.addEventListener("click", generateCouponCode);
+  </script>
+
+</body>
+</html>
