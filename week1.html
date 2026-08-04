@@ -151,6 +151,7 @@
   }
   .id-card input:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
   .id-card .hint { font-size: 0.78rem; color: var(--ink-soft); margin-top: 6px; }
+  .id-card .hint#demoHint { color: var(--ember); font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; }
 
   /* ---------- Offer section ---------- */
   .offer-section {
@@ -295,6 +296,7 @@
     <label for="customerIdInput">Your customer ID</label>
     <input type="text" id="customerIdInput" placeholder="e.g. CUST4821" maxlength="12">
     <p class="hint">We use this to personalise your welcome message and to generate a coupon code that's unique to your account.</p>
+    <p class="hint" id="demoHint">Existing customer IDs contain "CUST9" (e.g. CUST9021, ACUST9481). Any ID with that marker qualifies - try one without it too, like CUST1092, to see the difference.</p>
   </div>
 
   <!-- ============ OFFER / REGISTER / COUPON ============ -->
@@ -306,7 +308,7 @@
       <!-- Scenario 2: clicking this button toggles the steps panel -->
       <button class="register-btn" id="registerBtn">Register for the offer</button>
 
-      <p class="error-text" id="errorText">Please enter your customer ID above before registering.</p>
+      <p class="error-text" id="errorText"></p>
 
       <!-- Hidden by default; shown/hidden by toggleStepsPanel() -->
       <div id="stepsPanel">
@@ -325,7 +327,7 @@
         <div class="coupon-ticket" id="couponTicket">
           <div class="tag">Your Diwali coupon</div>
           <div class="code" id="couponCode">—</div>
-          <div class="expiry">Valid till 31 Oct 2026 &middot; one-time use</div>
+          <div class="expiry" id="couponExpiry">Valid till 31 Oct 2026 &middot; one-time use</div>
         </div>
       </div>
     </div>
@@ -354,6 +356,7 @@
     var generateBtn        = document.getElementById("generateBtn");
     var couponTicket       = document.getElementById("couponTicket");
     var couponCode          = document.getElementById("couponCode");
+    var couponExpiry         = document.getElementById("couponExpiry");
     var errorText            = document.getElementById("errorText");
 
     // Tracks whether the steps panel is currently open, so the
@@ -361,20 +364,53 @@
     var stepsAreVisible = false;
 
     /* ----------------------------------------------------------
+       EXISTING CUSTOMER LOOKUP
+       In production this would be an API call to the core banking
+       system. For this case study, every existing XYZ Bank customer
+       ID contains the marker "CUST9" somewhere in it (this is how
+       their legacy account numbering flags "existing" vs "new"
+       accounts), so ANY ID containing that marker is eligible -
+       not just a fixed handful of demo IDs.
+    ---------------------------------------------------------- */
+    var ELIGIBILITY_MARKER = "CUST9"; // existing customer IDs must contain this substring
+    var MIN_ID_LENGTH = 6;            // existing customer IDs are at least this long
+
+    function isExistingCustomer(customerId) {
+      var trimmedId = customerId.trim().toUpperCase();
+
+      // Rule: an existing customer's ID must meet a minimum length
+      // AND contain the "CUST9" marker anywhere in it. This applies
+      // to every ID that matches, not just a specific hardcoded set.
+      return trimmedId.length >= MIN_ID_LENGTH &&
+             trimmedId.indexOf(ELIGIBILITY_MARKER) !== -1;
+    }
+
+    /* ----------------------------------------------------------
        SCENARIO 1: Welcome message for existing users
        In a real system this name would come from a login session /
        API call. For this case study we fall back to a generic
        greeting until the customer types in their ID, then we
-       personalise the message using their ID.
+       check the ID against existingCustomers before personalising
+       the message - only real account holders get the "eligible"
+       welcome, everyone else is told the ID wasn't recognised.
     ---------------------------------------------------------- */
     function displayWelcomeMessage(customerId) {
-      if (customerId && customerId.trim().length > 0) {
+      var trimmedId = customerId ? customerId.trim() : "";
+
+      if (trimmedId.length === 0) {
         welcomeMessage.textContent =
-          "Welcome back, " + customerId.trim().toUpperCase() +
+          "Welcome, visitor! Enter your customer ID below to check if you're eligible for the Diwali coupon.";
+        return;
+      }
+
+      if (isExistingCustomer(trimmedId)) {
+        welcomeMessage.textContent =
+          "Welcome back, " + trimmedId.toUpperCase() +
           "! As a valued XYZ Bank customer, you're eligible for our Diwali bonanza coupon.";
       } else {
         welcomeMessage.textContent =
-          "Welcome, valued customer! Enter your customer ID below to unlock your Diwali coupon.";
+          "We don't recognise " + trimmedId.toUpperCase() +
+          " as an XYZ Bank customer ID, so this offer isn't available on this account yet.";
       }
     }
 
@@ -399,20 +435,78 @@
     });
 
     /* ----------------------------------------------------------
+       LOCAL STORAGE: coupon records
+       Once a customer registers, we save their coupon to
+       localStorage so the offer is claimed once per customer
+       (per browser) instead of generating a fresh code every time
+       they revisit the page - and so the ticket can be shown again
+       automatically if they come back and re-enter the same ID.
+    ---------------------------------------------------------- */
+    var COUPON_STORAGE_KEY = "xyzBankDiwaliCoupons";
+
+    // Reads the whole coupon-records object out of localStorage.
+    // Falls back to an empty object if nothing's saved yet, or if
+    // localStorage isn't available (e.g. private browsing in some
+    // browsers throws here rather than just returning null).
+    function readCouponStore() {
+      try {
+        var raw = localStorage.getItem(COUPON_STORAGE_KEY);
+        return raw ? JSON.parse(raw) : {};
+      } catch (err) {
+        return {};
+      }
+    }
+
+    // Saves one customer's coupon, keeping any other customers'
+    // records that were already in storage.
+    function saveCouponRecord(customerId, code) {
+      try {
+        var store = readCouponStore();
+        store[customerId] = {
+          code: code,
+          registeredAt: new Date().toISOString()
+        };
+        localStorage.setItem(COUPON_STORAGE_KEY, JSON.stringify(store));
+      } catch (err) {
+        // localStorage can throw if it's disabled or full - the coupon
+        // still shows on screen this session, it just won't be saved.
+        console.warn("Could not save coupon to localStorage:", err);
+      }
+    }
+
+    function getCouponRecord(customerId) {
+      var store = readCouponStore();
+      return store[customerId] || null;
+    }
+
+    /* ----------------------------------------------------------
        SCENARIO 2: Register button hides/shows the detailed steps
-       First click validates that a customer ID has been entered,
-       then reveals the steps panel. Clicking again hides it -
-       a plain toggle.
+       First click validates that a customer ID has been entered
+       AND that it belongs to an existing customer, then reveals
+       the steps panel. Clicking again just hides it again - no
+       need to re-check eligibility on the way back down.
     ---------------------------------------------------------- */
     function toggleStepsPanel() {
       var customerId = customerIdInput.value.trim();
 
-      // Guard clause: don't reveal the steps until we actually
-      // know who the customer is.
-      if (!stepsAreVisible && customerId.length === 0) {
-        errorText.style.display = "block";
-        customerIdInput.focus();
-        return;
+      if (!stepsAreVisible) {
+        // Guard clause 1: we need an ID to check at all.
+        if (customerId.length === 0) {
+          errorText.textContent = "Please enter your customer ID above before registering.";
+          errorText.style.display = "block";
+          customerIdInput.focus();
+          return;
+        }
+
+        // Guard clause 2: the ID has to belong to an existing customer.
+        // This is the check that keeps the offer restricted instead of
+        // letting anyone who types anything through.
+        if (!isExistingCustomer(customerId)) {
+          errorText.textContent = "That customer ID isn't linked to an existing XYZ Bank account, so it isn't eligible for this offer.";
+          errorText.style.display = "block";
+          customerIdInput.focus();
+          return;
+        }
       }
 
       errorText.style.display = "none";
@@ -442,25 +536,82 @@
       return String(hash).padStart(5, "0");
     }
 
+    function showCouponTicket(code, issuedAtIso) {
+      couponCode.textContent = code;
+
+      var issuedDate = new Date(issuedAtIso);
+      couponExpiry.textContent =
+        "Issued " + issuedDate.toLocaleDateString() + " \u00b7 valid till 31 Oct 2026 \u00b7 one-time use";
+
+      couponTicket.style.display = "block";
+    }
+
     function generateCouponCode() {
       var customerId = customerIdInput.value.trim().toUpperCase();
 
       if (customerId.length === 0) {
+        errorText.textContent = "Please enter your customer ID above before registering.";
         errorText.style.display = "block";
         customerIdInput.focus();
         return;
       }
 
+      // Belt-and-braces: the steps panel already gates on eligibility,
+      // but the coupon should never be generated for a non-customer
+      // even if this function ends up called some other way.
+      if (!isExistingCustomer(customerId)) {
+        errorText.textContent = "That customer ID isn't linked to an existing XYZ Bank account, so it isn't eligible for this offer.";
+        errorText.style.display = "block";
+        couponTicket.style.display = "none";
+        return;
+      }
+
+      errorText.style.display = "none";
+
+      // If this customer has already claimed a coupon before (saved in
+      // localStorage from an earlier visit), show that same code
+      // instead of generating a second one - one coupon per customer.
+      var existingRecord = getCouponRecord(customerId);
+      if (existingRecord) {
+        showCouponTicket(existingRecord.code, existingRecord.registeredAt);
+        return;
+      }
+
       var idDigits = hashCustomerId(customerId);
       var randomSuffix = Math.random().toString(36).slice(2, 4).toUpperCase();
-
       var code = "DIWALI-" + idDigits + "-" + randomSuffix;
+      var issuedAt = new Date().toISOString();
 
-      couponCode.textContent = code;
-      couponTicket.style.display = "block";
+      saveCouponRecord(customerId, code);
+      showCouponTicket(code, issuedAt);
     }
 
     generateBtn.addEventListener("click", generateCouponCode);
+
+    /* ----------------------------------------------------------
+       RETURNING CUSTOMER CHECK
+       If the ID typed in already has a coupon saved from an
+       earlier visit, open the steps panel and show that coupon
+       straight away rather than making them click through again.
+    ---------------------------------------------------------- */
+    function checkForReturningCustomer(customerId) {
+      var trimmedId = customerId.trim().toUpperCase();
+      var existingRecord = trimmedId.length > 0 ? getCouponRecord(trimmedId) : null;
+
+      if (existingRecord) {
+        stepsAreVisible = true;
+        stepsPanel.style.display = "block";
+        registerBtn.textContent = "Hide registration steps";
+        showCouponTicket(existingRecord.code, existingRecord.registeredAt);
+      }
+    }
+
+    // Check once on load (in case the field is pre-filled) and again
+    // every time the customer edits their ID.
+    checkForReturningCustomer(customerIdInput.value);
+    customerIdInput.addEventListener("input", function () {
+      checkForReturningCustomer(customerIdInput.value);
+    });
   </script>
 
 </body>
